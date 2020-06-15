@@ -1,0 +1,89 @@
+## Basic Commands
+- help: prints a short help message
+- set [ssid|password] _value_: changes the settings for the uplink AP (WiFi config of your home-router), use password "none" for open networks.
+- set [ap_ssid|ap_password] _value_: changes the settings for the soft-AP of the ESP (for your stations)
+- show [config|stats]: prints the current config or some status information and statistics
+- save [dhcp]: saves the current config parameters, ACLs, and routing entires [+ the current DHCP leases] to flash
+- lock [_password_]: saves and locks the current config, changes are not allowed. Password can be left open if already set before (Default is the password of the uplink WiFi)
+- unlock _password_: unlocks the config, requires password from the lock command
+- reset [factory]: resets the esp, 'factory' optionally resets WiFi params to default values (works on a locked device only from serial console)
+- quit: terminates a remote session
+
+### Automesh Config
+- set automesh [0|1]: selects, whether the automesh mode is on or off (default), see details here https://github.com/martin-ger/esp_wifi_repeater#automesh-mode
+- set am_threshold _dB_: sets the threshold for a "bad" connection (in negative dB, default 85, i.e. -85 dB) 
+- set am_scan_time _secs_: sets the time interval in seconds the ESP tries in automesh mode to find an uplink AP before going to sleep (0 disabled, default)
+- set am_sleep_time _secs_: sets the time interval in seconds the ESP sleeps in automesh mode if no uplink AP is found (0 disabled, default)
+
+### WiFi Config
+- set ap_on [0|1]: selects, whether the soft-AP is disabled (ap_on=0) or enabled (ap_on=1, default)
+- set ap_open [0|1]: selects, whether the soft-AP uses WPA2-PSK security (ap_open=0,  automatic, if an ap_password is set) or open (ap_open=1)
+- set auto_connect [0|1]: selects, whether the STA should keep retrying to reconnect to the AP. auto_connect is off (0) after first flashing or after "reset factory". When you enter a new SSID it will be automatically set on (1).
+- set ssid_hidden [0|1]: selects, whether the SSID of the soft-AP is hidden (ssid_hidden=1) or visible (ssid_hidden=0, default)
+- set phy_mode [1|2|3]: sets the PHY_MODE of the WiFi (1=b, 2=g, 3=n(default))
+- set bssid _xx:xx:xx:xx:xx:xx_: sets the specific BSSID of the uplink AP to connect to (default 00:00:00:00:00:00 which means any)
+- set [ap_mac|sta_mac] _xx:xx:xx:xx:xx:xx_: sets the MAC address of the STA and SOFTAP to a user defined value (bit 0 of the first byte of the MAC address can not be 1)
+- set sta_mac random: set a new random STA MAC after each reboot
+- set sta_hostname _name_: sets the name of the STA (visible to the uplink AP)
+- set max_clients [1-8]: sets the number of STAs that can connct to the SoftAP (limit of the ESP's SoftAP implementation is 8, default)
+- scan: does a scan for APs
+- connect: tries to connect to an AP with the currently configured _ssid_ and _password_
+- disconnect: disconnects from any uplink AP
+
+### WPA2 Enterprise Config
+- set use_peap[0|1]: selects, whether the STA should connect via simple WPA-PSK (use_peap=0, default) or usinf WPA2 Enterprise (PEAP) 
+- set peap_identity _value_: sets the PEAP 'outer' identity (the string that is first presented to the RADIUS server, maybe anonymous@yourorg.org)
+- peap_username _value_: sets the PEAP username
+- peap_password _value_: sets the PEAP password
+
+### TCP/IP Config
+- set network _ip-addr_: sets the IP address of the internal network, network is always /24, router is always x.x.x.1
+- set dns _dns-addr_: sets a static DNS address that is distributed to clients via DHCP
+- set dns dhcp: configures use of the dynamic DNS address from DHCP, default
+- set ip _ip-addr_: sets a static IP address for the STA interface
+- set ip dhcp: configures dynamic IP address for the STA interface, default
+- set netmask _netmask_: sets a static netmask for the STA interface
+- set gw _gw-addr_: sets a static gateway address for the STA interface
+- set tcp_timeout _secs_: sets the NAPT timeout for TCP connections (0=default (1800 secs))
+- set udp_timeout _secs_: sets the NAPT timeout for UDP connections (0=default (2 secs))
+- show dhcp: prints the current status of the dhcp lease table
+
+### Routing
+- show route: displays the current routing table
+- route clear: clears all static routes
+- route add _network_ _gw_: adds a static route to a network (network given CIDR notation ('x.x.x.x/n')) via gateway gw
+- route delete _network_: removes a static route to a network
+- interface _inX_ [up|down]: sets the interface state up or down (no IP routing/traffic through down interfaces, default: up)
+- set nat [0|1]: selects, whether the soft-AP interface is NATed (nat=1, default) or not (nat=0). Without NAT transparent forwarding of traffic from the internal STAs doesn't work! Useful mainly in combination with static routing.
+- portmap add [TCP|UDP] _external_port_ _internal_ip_ _internal_port_: adds a port forwarding
+- portmap remove [TCP|UDP] _external_port_: deletes a port forwarding
+- nslookup _name_: starts a DNS lookup for the given name and displays the result
+- ping _host_: checks IP connectivity with ICMP echo request/reply (host as IP address or DNS name)
+
+### Firewall/Monitor Config
+- acl [from_sta|to_sta|from_ap|to_ap] [TCP|UDP|IP] _src-ip_ [_src_port_] _desr-ip_ [_dest_port_] [allow|deny|allow_monitor|deny_monitor]: adds a new rule to the ACL
+- acl [from_sta|to_sta|from_ap|to_ap] clear: clears the whole ACL
+- show acl: shows the defined ACLs and some stats
+- set acl_debug [0|1]: switches ACL debug output on/off - all denied packets will be logged to the terminal
+- set [upstream_kbps|downstream_kbps] _bitrate_: sets a maximum upstream/downstream bitrate (0 = no limit, default)
+- set daily_limit _limit_in_KB_: defined a max. amount of kilobytes that can be transfered by STAs per day (0 = no limit, default)
+- set timezone _hours_offset_: defines the local timezone (required to know, when a day is over at 00:00)
+- monitor [on|off|acl] _port_: starts and stops monitor server on a given port
+
+### User Interface Config
+- set config_port _portno_: sets the port number of the console login (default is 7777, 0 disables remote console config)
+- set web_port _portno_: sets the port number of the web config server (default is 80, 0 disables web config)
+- set config_access _mode_: controls the networks that allow config access for console and web (0: no access, 1: only internal, 2: only external, 3: both (default))
+
+### Chip Config
+- set speed [80|160]: sets the CPU clock frequency (default 80 Mhz)
+- sleep _seconds_: Put ESP into deep sleep for the specified amount of seconds. Valid values between 1 and 4294 (aprox. 71 minutes)
+- set status_led _GPIOno_: selects a GPIO pin for the status LED (default 2, >16 disabled)
+- set hw_reset _GPIOno_: selects a GPIO pin for a hardware factory reset (>16 disabled, default)
+- set ap_watchdog _secs_: sets the AP watchdog timeout - if there are no packets received for _secs_ from the uplink AP the repeater resets ("none" = no timeout, default)
+- set client_watchdog _secs_: sets the client watchdog timeout - if there are no packets received for _secs_ from any connected client the repeater resets ("none" = no timeout, default)
+- set vmin _voltage_: sets the minimum battery voltage in mV. If Vdd drops below, the ESP goes into deep sleep. If 0, nothing happens
+- set vmin_sleep _secs_: sets the time interval in seconds the ESP sleeps on low voltage
+- gpio [0-16] _mode_ [_in_|_in_pullup|_out_]: configures a GPIO port of the ESP (saved to flash)
+- gpio [0-16] _set_  [_high_|_low_]: writes to an output port
+- gpio [0-16] _get_: reads from an input port
